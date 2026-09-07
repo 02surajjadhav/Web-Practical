@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registraction Form inside Table</title>
+<style>
+form{
+    border:red;
+    align-content: center;
+    text-align: center;
+}
+body{
+    align-content: center;
+    text-align: center;
+}
+table{
+        border:red;   
+        background:yellow;
+        align-content: center;
+        text-align: center;
+}
+label{
+    display: block;
+    margin-top: 8px;
+ }
+input{
+    width: 80%;
+    padding:10px;
+    margin: 5px;;
+ }
+</style>
+</head>
+<body>
+<h2>Registraction Form</h2>
+<form>
+<table border="1" cellpadding="10">
+    <tr>
+        <td>information</td>
+        <td>insert </td>
+    </tr>
+
+<tr>
+<td><label>Full Name:</label></td>
+<td><input type="text" placeholder="Enter your full name" required></td>
+</tr>
+<tr>
+<td><label>Email:</label></td>
+<td><input type="email" placeholder="Enter your email" required></td>
+</tr>
+<tr>
+<td><label>Password:</label></td>
+<td><input type="password" placeholder="Enter your password" required></td>
+</tr>
+<tr>
+<td><label>Class:</label></td>
+<td><input type="class" placeholder="Enter your class" required></td>
+</tr>
+<tr>
+    <td><label>Division:</label></td>
+    <td><input type="division" placeholder="Enter your Division" required></td>
+</tr>
+<tr>
+<td><input type="submit" value="Register"></td>
+<td><input type="reset" value="Clear"></td>
+</tr>
+</form>
+</body>
+</Html>
