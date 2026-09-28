@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Student Form</title>
+  <style>
+    body {
+      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+      max-width: 500px;
+      font-size: 20px;
+      margin: 40px auto;
+      color: rgb(235, 0, 243);
+      background-color: aqua;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 15px;
+      box-sizing: border-box;
+      color: brown;
+    }
+    button {
+      padding: 10px 20px;
+      cursor: pointer;
+      color: blue;
+    }
+    .error {
+      color: red;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Student Form</h2>
+  <form id="studentForm">
+
+    <label>Name:</label>
+    <input type="text" id="name">
+    <div id="nameError" class="error"></div>
+
+    <label>Email:</label>
+    <input type="text" id="email">
+    <div id="emailError" class="error"></div>
+
+    <label>Message:</label>
+    <textarea id="message" rows="5"></textarea>
+    <div id="messageError" class="error"></div>
+
+    <button type="submit">Submit</button>
+  </form>
+  <script>
+    document.getElementById("studentForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      let name = document.getElementById("name").value.trim();
+      let email = document.getElementById("email").value.trim();
+      let message = document.getElementById("message").value.trim();
+
+      let valid = true;
+
+      document.getElementById("nameError").textContent = "";
+      document.getElementById("emailError").textContent = "";
+      document.getElementById("messageError").textContent = "";
+
+      if (name == "") {
+        document.getElementById("nameError").textContent =
+          "Name can not be empty.";
+        valid = false;
+      }
+
+      let emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (email == "") {
+        document.getElementById("emailError").textContent =
+          "Email can not be empty.";
+        valid = false;
+      } else if (!emailPattern.test(email)) {
+        document.getElementById("emailError").textContent =
+          "Please enter a valid email address.";
+        valid = false;
+      }
+
+      if (message == "") {
+        document.getElementById("messageError").textContent =
+          "Message can not be empty.";
+        valid = false;
+      }
+      if (valid) {
+        alert("Form submitted successfully!");
+      }
+    });
+  </script>
+</body>
+</html>
