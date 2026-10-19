@@ -1,0 +1,197 @@
+import React, { Component, useState, useEffect } from "react";
+import "./App.css";
+class VisitorCounter extends Component {
+  state = { count: 0 };
+  increment = () => {
+    this.setState({ count: this.state.count + 1 });
+  };
+  decrement = () => {
+    this.setState({
+      count: Math.max(0, this.state.count - 1)
+    });
+  };
+  reset = () => {
+    this.setState({ count: 0 });
+  };
+  render() {
+    return (
+      <section>
+        <h2>1. Visitor Counter</h2>
+        <h3>Visitors: {this.state.count}</h3>
+        <button onClick={this.increment}>Entry (+1)</button>{" "}
+        <button onClick={this.decrement}>Exit (-1)</button>{" "}
+        <button onClick={this.reset}>Reset</button>
+      </section>
+    );
+  }
+}
+class UserStatus extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { online: navigator.onLine };
+  }
+  componentDidMount() {
+    window.addEventListener("online", this.handleOnline);
+    window.addEventListener("offline", this.handleOffline);
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.online !== this.state.online) {
+      console.log("Status changed:", this.state.online);
+    }
+  }
+  componentWillUnmount() {
+    window.removeEventListener("online", this.handleOnline);
+    window.removeEventListener("offline", this.handleOffline);
+  }
+  handleOnline = () => this.setState({ online: true });
+  handleOffline = () => this.setState({ online: false });
+  render() {
+    return (
+      <section>
+        <h2>2. User Status</h2>
+        <h3>
+          Status: {this.state.online ? "Online" : "Offline"}
+        </h3>
+        <p>
+          {this.state.online
+            ? "Internet connection is available."
+            : "Internet connection is unavailable."}
+        </p>
+      </section>
+    );
+  }
+}
+function RegistrationForm() {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: ""
+  });
+  const [message, setMessage] = useState("");
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setMessage("");
+  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.name.trim()) {
+      setMessage("Please enter your name.");
+    } else if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+    ) {
+      setMessage("Please enter a valid email address.");
+    } else if (form.password.length < 6) {
+      setMessage("Password must contain at least 6 characters.");
+    } else {
+      setMessage("Registration successful!");
+      setForm({ name: "", email: "", password: "" });
+    }
+  };
+  return (
+    <section>
+      <h2>3. Registration Form</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          name="name"
+          placeholder="Full Name"
+          value={form.name}
+          onChange={handleChange}
+        />
+        <br /><br />
+        <input
+          name="email"
+          type="email"
+          placeholder="Email Address"
+          value={form.email}
+          onChange={handleChange}
+        />
+        <br /><br />
+        <input
+          name="password"
+          type="password"
+          placeholder="Password (minimum 6 characters)"
+          value={form.password}
+          onChange={handleChange}
+        />
+        <br /><br />
+        <button type="submit">Register</button>
+      </form>
+      {message && <p>{message}</p>}
+    </section>
+  );
+}
+function TodoList() {
+  const [task, setTask] = useState("");
+  const [tasks, setTasks] = useState([]);
+  useEffect(() => {
+    document.title = `To-Do List (${tasks.length} tasks)`;
+  }, [tasks]);
+  const addTask = (e) => {
+    e.preventDefault();
+    if (!task.trim()) return;
+    setTasks([
+      ...tasks,
+      { id: Date.now(), text: task.trim(), done: false }
+    ]);
+
+    setTask("");
+  };
+  const toggleTask = (id) => {
+    setTasks(
+      tasks.map((item) =>
+        item.id === id
+          ? { ...item, done: !item.done }
+          : item
+      )
+    );
+  };
+  const deleteTask = (id) => {
+    setTasks(tasks.filter((item) => item.id !== id));
+  };
+  return (
+    <section>
+      <h2>4. To-Do List</h2>
+      <form onSubmit={addTask}>
+        <input
+          type="text"
+          placeholder="Enter a task"
+          value={task}
+          onChange={(e) => setTask(e.target.value)}
+        />
+        <button type="submit">Add Task</button>
+      </form>
+      <ul>
+        {tasks.map((item) => (
+          <li key={item.id}>
+            <span
+              onClick={() => toggleTask(item.id)}
+              style={{
+                cursor: "pointer",
+                textDecoration: item.done
+                  ? "line-through"
+                  : "none"
+              }}
+            >
+              {item.text}
+            </span>{" "}
+            <button onClick={() => deleteTask(item.id)}>
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+      {tasks.length === 0 && <p>No tasks added yet.</p>}
+    </section>
+  );
+}
+export default function App() {
+  return (
+    <div>
+      <h1>React Applications</h1>
+      <VisitorCounter />
+      <UserStatus />
+      <RegistrationForm />
+      <TodoList />
+    </div>
+  );
+}
