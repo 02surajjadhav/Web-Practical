@@ -1,0 +1,333 @@
+import React, { useEffect, useState } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  NavLink,
+  useNavigate,
+} from "react-router-dom";
+import "./App.css";
+function Home() {
+  return (
+    <section className="card">
+      <h2>Welcome to Admin Dashboard</h2>
+      <p>
+        This application combines React Routing, API
+        Integration, and CRUD operations.
+      </p>
+      <div className="dashboard">
+        <Link to="/users" className="dashboard-item">
+          <h3>User Management</h3>
+          <p>Add, view, edit and delete users.</p>
+        </Link>
+        <Link to="/weather" className="dashboard-item">
+          <h3>Weather Forecast</h3>
+          <p>Fetch current weather for a city.</p>
+        </Link>
+      </div>
+    </section>
+  );
+}
+function Users() {
+  const [users, setUsers] = useState(() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem("react-users") || "[]"
+      );
+    } catch {
+      return [];
+    }
+  });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    department: "",
+  });
+  const [editId, setEditId] = useState(null);
+  useEffect(() => {
+    localStorage.setItem("react-users", JSON.stringify(users));
+  }, [users]);
+  function handleChange(e) {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  }
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!form.name.trim() || !form.email.trim()) {
+      alert("Please enter name and email.");
+      return;
+    }
+    if (editId !== null) {
+      setUsers((previous) =>
+        previous.map((user) =>
+          user.id === editId
+            ? { ...user, ...form }
+            : user
+        )
+      );
+      setEditId(null);
+    } else {
+      setUsers((previous) => [
+        ...previous,
+        {
+          id: Date.now(),
+          name: form.name.trim(),
+          email: form.email.trim(),
+          department: form.department.trim(),
+        },
+      ]);
+    }
+    setForm({ name: "", email: "", department: "" });
+  }
+  function editUser(user) {
+    setForm({
+      name: user.name,
+      email: user.email,
+      department: user.department,
+    });
+    setEditId(user.id);
+  }
+  function deleteUser(id) {
+    if (window.confirm("Delete this user?")) {
+      setUsers((previous) =>
+        previous.filter((user) => user.id !== id)
+      );
+      if (editId === id) {
+        setEditId(null);
+        setForm({ name: "", email: "", department: "" });
+      }
+    }
+  }
+  function cancelEdit() {
+    setEditId(null);
+    setForm({ name: "", email: "", department: "" });
+  }
+  return (
+    <section className="card">
+      <h2>User Management (CRUD)</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          name="name"
+          placeholder="Full Name"
+          value={form.name}
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="email"
+          type="email"
+          placeholder="Email Address"
+          value={form.email}
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="department"
+          placeholder="Department"
+          value={form.department}
+          onChange={handleChange}
+        />
+        <button type="submit">
+          {editId !== null ? "Update User" : "Add User"}
+        </button>
+        {editId !== null && (
+          <button type="button" className="secondary"
+            onClick={cancelEdit}>
+            Cancel
+          </button>
+        )}
+      </form>
+      <h3>Users List ({users.length})</h3>
+      {users.length === 0 ? (
+        <p>No users found. Add your first user above.</p>
+      ) : (
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id}>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>{user.department || "-"}</td>
+                  <td>
+                    <button type="button"
+                      onClick={() => editUser(user)}>
+                      Edit
+                    </button>
+                    <button type="button"
+                      className="danger"
+                      onClick={() => deleteUser(user.id)}>
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+function Weather() {
+  const [city, setCity] = useState("Pune");
+  const [weather, setWeather] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  async function fetchWeather(e) {
+    e.preventDefault();
+    if (!city.trim()) return;
+    setLoading(true);
+    setError("");
+    setWeather(null);
+    try {
+      const geoResponse = await fetch(
+        "https://geocoding-api.open-meteo.com/v1/search?name=" +
+        encodeURIComponent(city.trim()) +
+        "&count=1&language=en&format=json"
+      );
+      if (!geoResponse.ok) {
+        throw new Error("Unable to find the city.");
+      }
+      const geoData = await geoResponse.json();
+      const place = geoData.results?.[0];
+      if (!place) {
+        throw new Error("City not found. Try another name.");
+      }
+      const weatherURL =
+        "https://api.open-meteo.com/v1/forecast" +
+        `?latitude=${place.latitude}` +
+        `&longitude=${place.longitude}` +
+        "&current=temperature_2m,relative_humidity_2m," +
+        "apparent_temperature,wind_speed_10m";
+      const weatherResponse = await fetch(weatherURL);
+      if (!weatherResponse.ok) {
+        throw new Error("Unable to fetch weather data.");
+      }
+      const weatherData = await weatherResponse.json();
+      setWeather({
+        city: place.name,
+        country: place.country,
+        ...weatherData.current,
+      });
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+  return (
+    <section className="card">
+      <h2>Weather Forecast</h2>
+      <p>Fetch current weather information using a public API.</p>
+      <form onSubmit={fetchWeather}>
+        <input
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          placeholder="Enter city name"
+          required
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? "Loading..." : "Get Weather"}
+        </button>
+      </form>
+      {error && <p className="error">{error}</p>}
+      {weather && (
+        <div className="weather-box">
+          <h3>
+            {weather.city}, {weather.country}
+          </h3>
+          <p>
+            <strong>Temperature:</strong>{" "}
+            {weather.temperature_2m} °C
+          </p>
+          <p>
+            <strong>Feels like:</strong>{" "}
+            {weather.apparent_temperature} °C
+          </p>
+          <p>
+            <strong>Humidity:</strong>{" "}
+            {weather.relative_humidity_2m}%
+          </p>
+          <p>
+            <strong>Wind speed:</strong>{" "}
+            {weather.wind_speed_10m} km/h
+          </p>
+          <small>
+            Weather time: {weather.time}
+          </small>
+        </div>
+      )}
+    </section>
+  );
+}
+function About() {
+  return (
+    <section className="card">
+      <h2>About This Project</h2>
+      <p>React practicals combined into one project:</p>
+      <ul>
+        <li>React Router DOM and navigation</li>
+        <li>Fetch API with async/await</li>
+        <li>CRUD operations for user records</li>
+        <li>React Hooks: useState and useEffect</li>
+      </ul>
+    </section>
+  );
+}
+function NotFound() {
+  const navigate = useNavigate();
+  return (
+    <section className="card">
+      <h2>404 - Page Not Found</h2>
+      <button onClick={() => navigate("/")}>
+        Return Home
+      </button>
+    </section>
+  );
+}
+function AppLayout() {
+  return (
+    <>
+      <header className="header">
+        <h1>React Admin System</h1>
+        <nav>
+          <NavLink to="/" end>Home</NavLink>
+          <NavLink to="/users">Users</NavLink>
+          <NavLink to="/weather">Weather</NavLink>
+          <NavLink to="/about">About</NavLink>
+        </nav>
+      </header>
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/weather" element={<Weather />} />
+          <Route path="/about" element={<About />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+      <footer>
+        React JS Practical 10, 11 and 12
+      </footer>
+    </>
+  );
+}
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppLayout />
+    </BrowserRouter>
+  );
+}
